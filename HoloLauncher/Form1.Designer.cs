@@ -1,20 +1,19 @@
-﻿namespace HoloLauncher
-{
-    partial class Form1
-    {
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace HoloLauncher {
+    partial class Form1 {
         /// <summary>
-        ///  Required designer variable.
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        ///  Clean up any resources being used.
+        /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
+        protected override void Dispose(bool disposing) {
+            if (disposing && (components != null)) {
                 components.Dispose();
             }
             base.Dispose(disposing);
@@ -23,70 +22,71 @@
         #region Windows Form Designer generated code
 
         /// <summary>
-        ///  Required method for Designer support - do not modify
-        ///  the contents of this method with the code editor.
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent() {
-            btn_InstallPlay = new Button();
-            progressBar1 = new ProgressBar();
-            label1 = new Label();
-            SuspendLayout();
+            this.btn_InstallPlay = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.SuspendLayout();
             // 
             // btn_InstallPlay
             // 
-            btn_InstallPlay.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btn_InstallPlay.Location = new Point(149, 79);
-            btn_InstallPlay.Name = "btn_InstallPlay";
-            btn_InstallPlay.Size = new Size(121, 48);
-            btn_InstallPlay.TabIndex = 0;
-            btn_InstallPlay.Text = "Install";
-            btn_InstallPlay.UseVisualStyleBackColor = true;
-            btn_InstallPlay.Click += btn_InstallPlay_Click;
-            // 
-            // progressBar1
-            // 
-            progressBar1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            progressBar1.Location = new Point(12, 193);
-            progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(387, 23);
-            progressBar1.TabIndex = 1;
-            progressBar1.Visible = false;
+            this.btn_InstallPlay.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btn_InstallPlay.Location = new System.Drawing.Point(117, 68);
+            this.btn_InstallPlay.Name = "btn_InstallPlay";
+            this.btn_InstallPlay.Size = new System.Drawing.Size(120, 42);
+            this.btn_InstallPlay.TabIndex = 0;
+            this.btn_InstallPlay.Text = "Install";
+            this.btn_InstallPlay.UseVisualStyleBackColor = true;
+            this.btn_InstallPlay.Click += new System.EventHandler(this.btn_InstallPlay_Click);
             // 
             // label1
             // 
-            label1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            label1.BackColor = Color.Black;
-            label1.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            label1.ForeColor = Color.White;
-            label1.Location = new Point(12, 157);
-            label1.Name = "label1";
-            label1.Size = new Size(387, 33);
-            label1.TabIndex = 2;
-            label1.Visible = false;
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.BackColor = System.Drawing.Color.Black;
+            this.label1.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.White;
+            this.label1.Location = new System.Drawing.Point(8, 133);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(329, 29);
+            this.label1.TabIndex = 2;
+            this.label1.Visible = false;
+            // 
+            // progressBar1
+            // 
+            this.progressBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.progressBar1.Location = new System.Drawing.Point(8, 165);
+            this.progressBar1.Name = "progressBar1";
+            this.progressBar1.Size = new System.Drawing.Size(329, 20);
+            this.progressBar1.TabIndex = 1;
+            this.progressBar1.Visible = false;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            BackgroundImage = Properties.Resources.BackgroundImage;
-            BackgroundImageLayout = ImageLayout.Zoom;
-            ClientSize = new Size(411, 228);
-            Controls.Add(label1);
-            Controls.Add(progressBar1);
-            Controls.Add(btn_InstallPlay);
-            DoubleBuffered = true;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
-            MinimumSize = new Size(427, 267);
-            Name = "Form1";
-            Text = "HoloLauncher";
-            SizeChanged += Form1_SizeChanged;
-            ResumeLayout(false);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackgroundImage = global::HoloLauncher.Properties.Resources.BackgroundImage;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.ClientSize = new System.Drawing.Size(349, 195);
+            this.Controls.Add(this.progressBar1);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.btn_InstallPlay);
+            this.DoubleBuffered = true;
+            this.Name = "Form1";
+            this.Text = "Form1";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
 
-        private Button btn_InstallPlay;
-        private ProgressBar progressBar1;
-        private Label label1;
+        private System.Windows.Forms.Button btn_InstallPlay;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ProgressBar progressBar1;
     }
 }
+

@@ -1,219 +1,234 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace HoloLauncher;
+namespace HoloLauncher {
+    public partial class Form1: Form {
+        public Form1() {
+            InitializeComponent();
+            label1.BackColor = Color.FromArgb(150, 0, 0, 0);
+            PositionButton();
+            DetectValidInstall();
+        }
 
-public partial class Form1: Form {
-    public Form1() {
-        InitializeComponent();
-        label1.BackColor = Color.FromArgb(150, 0, 0, 0);
-        PositionButton();
-        DetectValidInstall();
-    }
+        /*
+        1. Get game ISO from user
+        2. Copy to temp directory
+        3. Download patch zip file
+        4. Extract patch zip file
+        5. Download English patch file
+        6. Download mod launcher .exe
+        7. Launch mod launcher .exe and automatically patch the ISO 
+        8. Download PCSX2 zip
+        9. Extract PCSX2 zip
+        10. Delete temp file
+         */
+        async private void btn_InstallPlay_Click(object sender, EventArgs e) {
+            if (btn_InstallPlay.Text == "Play") {
 
-    /*
-    1. Get game ISO from user
-    2. Copy to temp directory
-    3. Download patch zip file
-    4. Extract patch zip file
-    5. Download English patch file
-    6. Download mod launcher .exe
-    7. Launch mod launcher .exe and automatically patch the ISO 
-    8. Download PCSX2 zip
-    9. Extract PCSX2 zip
-    10. Delete temp file
-     */
-    async private void btn_InstallPlay_Click(object sender, EventArgs e) {
+                var psi = new ProcessStartInfo {
+                    FileName = Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2", "pcsx2.exe"),
+                    Arguments = "KH2FM.NEW.ISO --nogui",
+                    WorkingDirectory = Path.Combine(AppContext.BaseDirectory, "Temp"),
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    CreateNoWindow = true
+                };
+                var process = Process.Start(psi) ?? throw new InvalidOperationException();
 
-        if (btn_InstallPlay.Text == "Play") {
+            } else {
+                await InstallProcess();
+            }
+
+        }
+
+        private void DetectValidInstall() {
+            if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO")) && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2"))) {
+                btn_InstallPlay.Text = "Play";
+                progressBar1.Visible = false;
+                btn_InstallPlay.Enabled = true;
+                label1.Visible = false;
+            } else {
+                btn_InstallPlay.Text = "Install";
+            }
+        }
+
+        async private Task InstallProcess() {
+
+            var newIsoPath = Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO");
+            if (File.Exists(newIsoPath)) {
+                File.Delete(newIsoPath);
+            }
+
+            label1.Visible = true;
+            progressBar1.Visible = true;
+            btn_InstallPlay.Enabled = false;
+            btn_InstallPlay.Text = "Installing...";
+
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "ISO files (*.iso)|*.iso";
+            ofd.Title = "Select the base game ISO file";
+
+            label1.Text = "Choosing file...";
+
+            MessageBox.Show("A clean Kingdom Hearts II - Final Mix+ (Japan) ISO is required.\nA *legally* obtained ISO is required to continue", "Alert");
+
+            if (ofd.ShowDialog() != DialogResult.OK) {
+                label1.Visible = false;
+                progressBar1.Visible = false;
+                btn_InstallPlay.Enabled = true;
+                btn_InstallPlay.Text = "Install";
+                return;
+            }
+
+            CreateDirectories();
+
+            string tempFolder = Path.Combine(AppContext.BaseDirectory, "Temp");
+
+            label1.Text = "Copying ISO...";
+
+            await Task.Run(() => {
+                File.Copy(ofd.FileName, Path.Combine(tempFolder, Path.GetFileName("KH2FM.ISO")), true);
+            });
+
+            var progress = new Progress<int>(value => {
+                progressBar1.Value = value;
+            });
+
+            //label1.Text = "Downloading mod...";
+
+            //await DownloadFromURL("https://github.com/DaRealLando123/DaysFM/releases/download/Alpha/v0.034.Alpha.7z", Path.Combine(tempFolder, "Mod.zip"), progress);
+
+            //Task extractTask1 = Task.Run(() => {
+            //    ZipFile.ExtractToDirectory("Mod.zip", "Mod", true);
+            //});
+
+            label1.Text = "Downloading (2/4) | PCSX2 Emulator...";
+
+            await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/PCSX2.1.6.0.zip", Path.Combine(tempFolder, "PCSX2.zip"), progress);
+
+            Task extractTask2 = Task.Run(() =>
+            {
+                string zipPath = Path.Combine(tempFolder, "PCSX2.zip");
+                string extractPath = Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2");
+
+                // Delete the folder if it exists to emulate 'overwrite'
+                if (Directory.Exists(extractPath)) {
+                    Directory.Delete(extractPath, true);
+                }
+                
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+            });
+
+            label1.Text = "Downloading (3/4) | Toolkit...";
+
+            await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/KH2FM.Toolkit.exe", Path.Combine(tempFolder, "KH2FM.Toolkit.exe"), progress);
+
+            label1.Text = "Downloading (4/4) | English patch...";
+
+            await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/English.Patch.kh2patch", Path.Combine(tempFolder, "English.Patch.kh2patch"), progress);
+
+            label1.Text = "Still extracting files...";
+
+            //await extractTask1;
+            await extractTask2;
+
+            label1.Text = "Patching... (sorry this is slow/laggy lol)";
 
             var psi = new ProcessStartInfo {
-                FileName = Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2", "pcsx2.exe"),
-                Arguments = "KH2FM.NEW.ISO --nogui",
-                WorkingDirectory = Path.Combine(AppContext.BaseDirectory, "Temp"),
+                FileName = Path.Combine(tempFolder, "KH2FM.Toolkit.exe"),
+                Arguments = "-batch English.Patch.kh2patch ModAlpha.kh2patch KH2FM.NEW.ISO",
+                WorkingDirectory = tempFolder,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                RedirectStandardInput = true,
                 CreateNoWindow = true
             };
-            using var process = Process.Start(psi) ?? throw new InvalidOperationException();
+            var process = Process.Start(psi) ?? throw new InvalidOperationException();
 
-        } else {
-            await InstallProcess();
+            var stdoutTask = Task.Run(async () =>
+            {
+                while (await process.StandardOutput.ReadLineAsync() != null) { }
+            });
+            var stderrTask = Task.Run(async () =>
+            {
+                while (await process.StandardError.ReadLineAsync() != null) { }
+            });
+
+            process.WaitForExit();
+            await Task.WhenAll(stdoutTask, stderrTask);
+
+            Debug.WriteLine("Process finished with code " + process.ExitCode);
+
+            process.Dispose();
+
+            File.Delete(Path.Combine(tempFolder, "English.Patch.kh2patch"));
+            File.Delete(Path.Combine(tempFolder, "PCSX2.zip"));
+            File.Delete(Path.Combine(tempFolder, "KH2FM.ISO"));
+            //File.Delete(Path.Combine(tempFolder, "ModAlpha.kh2patch"));
+
+            label1.Text = "Done Installing!";
+
+            progressBar1.Value = 0;
+
+            DetectValidInstall();
+
         }
 
-    }
+        private void CreateDirectories() {
+            // Get folder where the executable is running
+            string exeFolder = AppContext.BaseDirectory;
 
-    private void DetectValidInstall() {
-        if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO")) && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2"))) {
-            btn_InstallPlay.Text = "Play";
-            progressBar1.Visible = false;
-            btn_InstallPlay.Enabled = true;
-            label1.Visible = false;
-        } else {
-            btn_InstallPlay.Text = "Install";
-        }
-    }
-
-    async private Task InstallProcess() {
-
-        var newIsoPath = Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO");
-        if(File.Exists(newIsoPath)) {
-            File.Delete(newIsoPath);
+            Directory.CreateDirectory(Path.Combine(exeFolder, "Temp"));
         }
 
-        label1.Visible = true;
-        progressBar1.Visible = true;
-        btn_InstallPlay.Enabled = false;
-        btn_InstallPlay.Text = "Installing...";
+        private async Task DownloadFromURL(string url, string destination, IProgress<int> progress) {
 
-        OpenFileDialog ofd = new OpenFileDialog();
-        ofd.Filter = "ISO files (*.iso)|*.iso";
-        ofd.Title = "Select the base game ISO file";
+            using (var client = new HttpClient())
+            using (var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)) {
+                response.EnsureSuccessStatusCode();
 
-        label1.Text = "Choosing file...";
+                long totalBytes = response.Content.Headers.ContentLength ?? -1;
+                long downloadedBytes = 0;
 
-        MessageBox.Show("A clean Kingdom Hearts II - Final Mix+ (Japan) ISO is required.\nA *legally* obtained ISO is required to continue", "Alert");
+                using (var contentStream = await response.Content.ReadAsStreamAsync())
+                using (var fileStream = new FileStream(destination, FileMode.Create, FileAccess.Write, FileShare.None)) {
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        downloadedBytes += bytesRead;
 
-        if (ofd.ShowDialog() != DialogResult.OK) {
-            label1.Visible = false;
-            progressBar1.Visible = false;
-            btn_InstallPlay.Enabled = true;
-            btn_InstallPlay.Text = "Install";
-            return;
-        }
-
-        CreateDirectories();
-
-        string tempFolder = Path.Combine(AppContext.BaseDirectory, "Temp");
-
-        label1.Text = "Copying ISO...";
-
-        await Task.Run(() => {
-            File.Copy(ofd.FileName, Path.Combine(tempFolder, Path.GetFileName("KH2FM.ISO")), true);
-        });
-
-        var progress = new Progress<int>(value => {
-            progressBar1.Value = value;
-        });
-
-        //label1.Text = "Downloading mod...";
-
-        //await DownloadFromURL("https://github.com/DaRealLando123/DaysFM/releases/download/Alpha/v0.034.Alpha.7z", Path.Combine(tempFolder, "Mod.zip"), progress);
-
-        //Task extractTask1 = Task.Run(() => {
-        //    ZipFile.ExtractToDirectory("Mod.zip", "Mod", true);
-        //});
-
-        label1.Text = "Downloading (2/4) | PCSX2 Emulator...";
-
-        await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/PCSX2.1.6.0.zip", Path.Combine(tempFolder, "PCSX2.zip"), progress);
-
-        Task extractTask2 = Task.Run(() => {
-            ZipFile.ExtractToDirectory(Path.Combine(tempFolder, "PCSX2.zip"), Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2"), true);
-        });
-
-        label1.Text = "Downloading (3/4) | Toolkit...";
-
-        await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/KH2FM.Toolkit.exe", Path.Combine(tempFolder, "KH2FM.Toolkit.exe"), progress);
-
-        label1.Text = "Downloading (4/4) | English patch...";
-
-        await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/English.Patch.kh2patch", Path.Combine(tempFolder, "English.Patch.kh2patch"), progress);
-
-        label1.Text = "Still extracting files...";
-
-        //await extractTask1;
-        await extractTask2;
-
-        label1.Text = "Patching... (sorry this is slow/laggy lol)";
-
-        var psi = new ProcessStartInfo {
-            FileName = Path.Combine(tempFolder, "KH2FM.Toolkit.exe"),
-            Arguments = "-batch English.Patch.kh2patch ModAlpha.kh2patch KH2FM.NEW.ISO",
-            WorkingDirectory = tempFolder,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-        using var process = Process.Start(psi) ?? throw new InvalidOperationException();
-
-        var stdoutTask = Task.Run(async () =>
-        {
-            while (await process.StandardOutput.ReadLineAsync() != null) { }
-        });
-        var stderrTask = Task.Run(async () =>
-        {
-            while (await process.StandardError.ReadLineAsync() != null) { }
-        });
-
-        await process.WaitForExitAsync();
-        await Task.WhenAll(stdoutTask, stderrTask);
-
-        Debug.WriteLine("Process finished with code " + process.ExitCode);
-
-        File.Delete(Path.Combine(tempFolder, "English.Patch.kh2patch"));
-        File.Delete(Path.Combine(tempFolder, "PCSX2.zip"));
-        File.Delete(Path.Combine(tempFolder, "KH2FM.ISO"));
-        //File.Delete(Path.Combine(tempFolder, "ModAlpha.kh2patch"));
-
-        label1.Text = "Done Installing!";
-
-        progressBar1.Value = 0;
-
-        DetectValidInstall();
-
-    }
-
-    private void CreateDirectories() {
-        // Get folder where the executable is running
-        string exeFolder = AppContext.BaseDirectory;
-
-        Directory.CreateDirectory(Path.Combine(exeFolder, "Temp"));
-    }
-
-    private async Task DownloadFromURL(string url, string destination, IProgress<int> progress) {
-        using HttpClient client = new HttpClient();
-        using HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-
-        response.EnsureSuccessStatusCode();
-
-        long totalBytes = response.Content.Headers.ContentLength ?? -1;
-        long downloadedBytes = 0;
-
-        using Stream contentStream = await response.Content.ReadAsStreamAsync();
-        using FileStream fileStream = new FileStream(
-            destination, FileMode.Create, FileAccess.Write, FileShare.None);
-
-        byte[] buffer = new byte[8192];
-        int bytesRead;
-
-        while ((bytesRead = await contentStream.ReadAsync(buffer)) > 0) {
-            await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead));
-            downloadedBytes += bytesRead;
-
-            if (totalBytes > 0) {
-                int percent = (int)(downloadedBytes * 100 / totalBytes);
-                progress?.Report(percent);
+                        if (totalBytes > 0 && progress != null) {
+                            int percent = (int)(downloadedBytes * 100 / totalBytes);
+                            progress.Report(percent);
+                        }
+                    }
+                }
             }
         }
-        fileStream.Close();
-        contentStream.Close();
-    }
 
-    private void Form1_SizeChanged(object sender, EventArgs e) {
-        PositionButton();
-    }
+        private void Form1_SizeChanged(object sender, EventArgs e) {
+            PositionButton();
+        }
 
-    private void PositionButton() {
-        btn_InstallPlay.Location = new Point(
-            ClientSize.Width / 2 - btn_InstallPlay.Size.Width / 2,
-            ClientSize.Height / 2 - btn_InstallPlay.Size.Height / 2
-        );
+        private void PositionButton() {
+            btn_InstallPlay.Location = new Point(
+                ClientSize.Width / 2 - btn_InstallPlay.Size.Width / 2,
+                ClientSize.Height / 2 - btn_InstallPlay.Size.Height / 2
+            );
+        }
     }
 }
