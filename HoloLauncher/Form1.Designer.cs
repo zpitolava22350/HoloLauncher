@@ -108,6 +108,7 @@ namespace HoloLauncher {
             this.DoubleBuffered = true;
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximizeBox = false;
             this.Name = "Form1";
             this.Text = "KingdomLauncher";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
