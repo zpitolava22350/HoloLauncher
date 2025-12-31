@@ -20,6 +20,7 @@ namespace HoloLauncher {
         public Form1() {
             InitializeComponent();
             label1.BackColor = Color.FromArgb(150, 0, 0, 0);
+            pictureBox1.Location = new Point(ClientSize.Width / 2 - pictureBox1.Width / 2, pictureBox1.Location.Y);
             PositionButton();
             DetectValidInstall();
         }
@@ -67,6 +68,12 @@ namespace HoloLauncher {
                 label1.Visible = false;
             } else {
                 btn_InstallPlay.Text = "Install";
+            }
+
+            if(Directory.Exists(Path.Combine(docFolder, "KingdomLauncher"))) {
+                btn_Uninstall.Enabled = true;
+            } else {
+                btn_Uninstall.Enabled = false;
             }
         }
 
@@ -231,6 +238,17 @@ namespace HoloLauncher {
                 ClientSize.Width / 2 - btn_InstallPlay.Size.Width / 2,
                 ClientSize.Height / 2 - btn_InstallPlay.Size.Height / 2
             );
+            btn_Uninstall.Location = new Point(
+                ClientSize.Width / 2 - btn_Uninstall.Size.Width / 2,
+                btn_InstallPlay.Location.Y + btn_InstallPlay.Size.Height
+            );
+        }
+
+        private void btn_Uninstall_Click(object sender, EventArgs e) {
+
+            Directory.Delete(Path.Combine(docFolder, "KingdomLauncher"), true);
+            DetectValidInstall();
+
         }
     }
 }
