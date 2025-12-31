@@ -14,6 +14,9 @@ using System.Windows.Forms;
 
 namespace HoloLauncher {
     public partial class Form1: Form {
+
+        string docFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
         public Form1() {
             InitializeComponent();
             label1.BackColor = Color.FromArgb(150, 0, 0, 0);
@@ -37,9 +40,9 @@ namespace HoloLauncher {
             if (btn_InstallPlay.Text == "Play") {
 
                 var psi = new ProcessStartInfo {
-                    FileName = Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2", "pcsx2.exe"),
+                    FileName = Path.Combine(docFolder, "KingdomLauncher", "PCSX2", "pcsx2.exe"),
                     Arguments = "KH2FM.NEW.ISO --nogui",
-                    WorkingDirectory = Path.Combine(AppContext.BaseDirectory, "Temp"),
+                    WorkingDirectory = Path.Combine(docFolder, "KingdomLauncher"),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -48,6 +51,8 @@ namespace HoloLauncher {
                 };
                 var process = Process.Start(psi) ?? throw new InvalidOperationException();
 
+                Close();
+
             } else {
                 await InstallProcess();
             }
@@ -55,7 +60,7 @@ namespace HoloLauncher {
         }
 
         private void DetectValidInstall() {
-            if (File.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO")) && Directory.Exists(Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2"))) {
+            if (File.Exists(Path.Combine(docFolder, "KingdomLauncher", "KH2FM.NEW.ISO")) && Directory.Exists(Path.Combine(docFolder, "KingdomLauncher", "PCSX2"))) {
                 btn_InstallPlay.Text = "Play";
                 progressBar1.Visible = false;
                 btn_InstallPlay.Enabled = true;
@@ -67,7 +72,7 @@ namespace HoloLauncher {
 
         async private Task InstallProcess() {
 
-            var newIsoPath = Path.Combine(AppContext.BaseDirectory, "Temp", "KH2FM.NEW.ISO");
+            var newIsoPath = Path.Combine(docFolder, "KingdomLauncher", "KH2FM.NEW.ISO");
             if (File.Exists(newIsoPath)) {
                 File.Delete(newIsoPath);
             }
@@ -95,7 +100,7 @@ namespace HoloLauncher {
 
             CreateDirectories();
 
-            string tempFolder = Path.Combine(AppContext.BaseDirectory, "Temp");
+            string tempFolder = Path.Combine(docFolder, "KingdomLauncher");
 
             label1.Text = "Copying ISO...";
 
@@ -122,7 +127,7 @@ namespace HoloLauncher {
             Task extractTask2 = Task.Run(() =>
             {
                 string zipPath = Path.Combine(tempFolder, "PCSX2.zip");
-                string extractPath = Path.Combine(AppContext.BaseDirectory, "Temp", "PCSX2");
+                string extractPath = Path.Combine(docFolder, "KingdomLauncher", "PCSX2");
 
                 // Delete the folder if it exists to emulate 'overwrite'
                 if (Directory.Exists(extractPath)) {
@@ -188,10 +193,7 @@ namespace HoloLauncher {
         }
 
         private void CreateDirectories() {
-            // Get folder where the executable is running
-            string exeFolder = AppContext.BaseDirectory;
-
-            Directory.CreateDirectory(Path.Combine(exeFolder, "Temp"));
+            Directory.CreateDirectory(Path.Combine(docFolder, "KingdomLauncher"));
         }
 
         private async Task DownloadFromURL(string url, string destination, IProgress<int> progress) {
