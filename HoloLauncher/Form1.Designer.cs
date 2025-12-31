@@ -133,6 +133,7 @@ namespace HoloLauncher {
             // btn_dir
             // 
             this.btn_dir.BackColor = System.Drawing.Color.Transparent;
+            this.btn_dir.Cursor = System.Windows.Forms.Cursors.Help;
             this.btn_dir.FlatAppearance.BorderSize = 0;
             this.btn_dir.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ControlDarkDark;
             this.btn_dir.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
