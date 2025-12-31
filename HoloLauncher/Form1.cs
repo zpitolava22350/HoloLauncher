@@ -20,7 +20,7 @@ namespace HoloLauncher {
         public Form1() {
             InitializeComponent();
             label1.BackColor = Color.FromArgb(150, 0, 0, 0);
-            pictureBox1.Location = new Point(ClientSize.Width / 2 - pictureBox1.Width / 2, pictureBox1.Location.Y);
+            //pictureBox1.Location = new Point(ClientSize.Width / 2 - pictureBox1.Width / 2, pictureBox1.Location.Y);
             PositionButton();
             DetectValidInstall();
         }
@@ -63,17 +63,19 @@ namespace HoloLauncher {
         private void DetectValidInstall() {
             if (File.Exists(Path.Combine(docFolder, "KingdomLauncher", "KH2FM.NEW.ISO")) && Directory.Exists(Path.Combine(docFolder, "KingdomLauncher", "PCSX2"))) {
                 btn_InstallPlay.Text = "Play";
-                progressBar1.Visible = false;
-                btn_InstallPlay.Enabled = true;
-                label1.Visible = false;
             } else {
                 btn_InstallPlay.Text = "Install";
             }
+            label1.Visible = false;
+            progressBar1.Visible = false;
+            btn_InstallPlay.Enabled = true;
 
-            if(Directory.Exists(Path.Combine(docFolder, "KingdomLauncher"))) {
+            if (Directory.Exists(Path.Combine(docFolder, "KingdomLauncher"))) {
                 btn_Uninstall.Enabled = true;
+                btn_dir.Visible = true;
             } else {
                 btn_Uninstall.Enabled = false;
+                btn_dir.Visible = false;
             }
         }
 
@@ -93,17 +95,21 @@ namespace HoloLauncher {
             ofd.Filter = "ISO files (*.iso)|*.iso";
             ofd.Title = "Select the base game ISO file";
 
-            label1.Text = "Choosing file...";
+            label1.Text = "Choosing ISO...";
 
-            MessageBox.Show("A clean Kingdom Hearts II - Final Mix+ (Japan) ISO is required.\nA *legally* obtained ISO is required to continue", "Alert");
-
-            if (ofd.ShowDialog() != DialogResult.OK) {
-                label1.Visible = false;
-                progressBar1.Visible = false;
-                btn_InstallPlay.Enabled = true;
-                btn_InstallPlay.Text = "Install";
+            var result = MessageBox.Show("Kingdom Hearts II - Final Mix+ (Japan) is required.\nA *legally* obtained ISO is needed to continue.", "ISO Selection", MessageBoxButtons.OKCancel);
+            Debug.WriteLine(result);
+            if (result != DialogResult.OK) {
+                DetectValidInstall();
                 return;
             }
+
+            if (ofd.ShowDialog() != DialogResult.OK) {
+                DetectValidInstall();
+                return;
+            }
+
+            btn_Uninstall.Enabled = false;
 
             CreateDirectories();
 
@@ -127,7 +133,7 @@ namespace HoloLauncher {
             //    ZipFile.ExtractToDirectory("Mod.zip", "Mod", true);
             //});
 
-            label1.Text = "Downloading (2/4) | PCSX2 Emulator...";
+            label1.Text = "Downloading (2/4) PCSX2 Emulator...";
 
             await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/PCSX2.1.6.0.zip", Path.Combine(tempFolder, "PCSX2.zip"), progress);
 
@@ -144,11 +150,11 @@ namespace HoloLauncher {
                 ZipFile.ExtractToDirectory(zipPath, extractPath);
             });
 
-            label1.Text = "Downloading (3/4) | Toolkit...";
+            label1.Text = "Downloading (3/4) Toolkit...";
 
             await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/KH2FM.Toolkit.exe", Path.Combine(tempFolder, "KH2FM.Toolkit.exe"), progress);
 
-            label1.Text = "Downloading (4/4) | English patch...";
+            label1.Text = "Downloading (4/4) English patch...";
 
             await DownloadFromURL("https://github.com/DaRealLando123/KingdomLauncher/releases/download/Tools/English.Patch.kh2patch", Path.Combine(tempFolder, "English.Patch.kh2patch"), progress);
 
@@ -157,7 +163,7 @@ namespace HoloLauncher {
             //await extractTask1;
             await extractTask2;
 
-            label1.Text = "Patching... (sorry this is slow/laggy lol)";
+            label1.Text = "Patching... (this is slow/laggy)";
 
             var psi = new ProcessStartInfo {
                 FileName = Path.Combine(tempFolder, "KH2FM.Toolkit.exe"),
@@ -234,21 +240,26 @@ namespace HoloLauncher {
         }
 
         private void PositionButton() {
-            btn_InstallPlay.Location = new Point(
+           /*btn_InstallPlay.Location = new Point(
                 ClientSize.Width / 2 - btn_InstallPlay.Size.Width / 2,
                 ClientSize.Height / 2 - btn_InstallPlay.Size.Height / 2
             );
             btn_Uninstall.Location = new Point(
                 ClientSize.Width / 2 - btn_Uninstall.Size.Width / 2,
                 btn_InstallPlay.Location.Y + btn_InstallPlay.Size.Height
-            );
+            );*/
         }
 
         private void btn_Uninstall_Click(object sender, EventArgs e) {
-
+            if (MessageBox.Show("Are you sure you want to uninstall DaysFM?","Confirm",MessageBoxButtons.YesNo,MessageBoxIcon.Question) == DialogResult.No) return;
             Directory.Delete(Path.Combine(docFolder, "KingdomLauncher"), true);
             DetectValidInstall();
 
+        }
+
+        private void btn_dir_Click(object sender, EventArgs e)
+        {
+            Process.Start("explorer.exe", Path.Combine(docFolder, "KingdomLauncher"));
         }
     }
 }

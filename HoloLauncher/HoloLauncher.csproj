@@ -58,7 +58,10 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>HoloLauncher.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -130,6 +133,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Logo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Roxas.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Roxas1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Man.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
